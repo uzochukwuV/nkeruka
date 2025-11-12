@@ -1,16 +1,16 @@
 {
-  "name": "electron-react-boilerplate",
-  "description": "A foundation for scalable desktop apps",
+  "name": "web-agent-tester",
+  "version": "1.0.0",
+  "description": "AI-powered frontend testing tool with autonomous web agents",
   "keywords": [
     "electron",
-    "boilerplate",
+    "testing",
+    "automation",
+    "ai",
+    "playwright",
     "react",
     "typescript",
-    "ts",
-    "sass",
-    "webpack",
-    "hot",
-    "reload"
+    "web-agent"
   ],
   "homepage": "https://github.com/electron-react-boilerplate/electron-react-boilerplate#readme",
   "bugs": {
@@ -101,15 +101,19 @@
     }
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
     "@electron/notarize": "^3.0.0",
     "electron-debug": "^4.1.0",
     "electron-log": "^5.3.2",
     "electron-updater": "^6.3.9",
+    "playwright": "^1.49.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.3.0"
+    "react-router-dom": "^7.3.0",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
+    "@types/uuid": "^10.0.0",
     "@electron/rebuild": "^3.7.1",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.15",
     "@svgr/webpack": "^8.1.0",
@@ -175,8 +179,8 @@
     "webpack-merge": "^6.0.1"
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "WebAgentTester",
+    "appId": "com.webagent.tester",
     "asar": true,
     "afterSign": ".erb/scripts/notarize.js",
     "asarUnpack": "**\\*.{node,dll}",

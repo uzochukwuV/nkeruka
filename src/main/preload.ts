@@ -2,7 +2,7 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
-export type Channels = 'ipc-example';
+export type Channels = 'ipc-example' | 'test:progress';
 
 const electronHandler = {
   ipcRenderer: {
@@ -20,6 +20,15 @@ const electronHandler = {
     },
     once(channel: Channels, func: (...args: unknown[]) => void) {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
+    },
+  },
+  test: {
+    start: (config: any) => ipcRenderer.invoke('test:start', config),
+    stop: () => ipcRenderer.invoke('test:stop'),
+    getStatus: () => ipcRenderer.invoke('test:status'),
+    saveReport: (result: any) => ipcRenderer.invoke('test:save-report', result),
+    onProgress: (callback: (step: any) => void) => {
+      ipcRenderer.on('test:progress', (_event, step) => callback(step));
     },
   },
 };

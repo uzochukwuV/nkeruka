@@ -1,159 +1,280 @@
-<img src=".erb/img/erb-banner.svg" width="100%" />
+# Web Agent Tester
 
-<br>
+An AI-powered desktop application for automated frontend testing. Let AI agents explore your website, interact with forms, and validate functionality - then get detailed reports with console logs, network activity, and screenshots.
 
-<p>
-  Electron React Boilerplate uses <a href="https://electron.atom.io/">Electron</a>, <a href="https://facebook.github.io/react/">React</a>, <a href="https://github.com/reactjs/react-router">React Router</a>, <a href="https://webpack.js.org/">Webpack</a> and <a href="https://www.npmjs.com/package/react-refresh">React Fast Refresh</a>.
-</p>
+![Web Agent Tester](assets/icon.png)
 
-<br>
+## Features
 
-<div align="center">
+- **AI-Powered Testing**: Uses Claude (Anthropic) to intelligently navigate and test web applications
+- **Autonomous Navigation**: AI decides what to click, fill, and validate based on your test objectives
+- **Comprehensive Reporting**:
+  - Step-by-step execution logs
+  - Console error detection
+  - Network request monitoring
+  - Screenshots at each step
+- **Developer Console Integration**: Automatically captures and displays browser console errors
+- **Cross-Platform**: Works on Windows, macOS, and Linux
+- **Headless Mode**: Run tests in the background without opening browser windows
 
-[![Build Status][github-actions-status]][github-actions-url]
-[![Github Tag][github-tag-image]][github-tag-url]
-[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/Fjy3vfgy5q)
+## Architecture
 
-[![OpenCollective](https://opencollective.com/electron-react-boilerplate-594/backers/badge.svg)](#backers)
-[![OpenCollective](https://opencollective.com/electron-react-boilerplate-594/sponsors/badge.svg)](#sponsors)
-[![StackOverflow][stackoverflow-img]][stackoverflow-url]
+### Technology Stack
 
-</div>
+- **Electron**: Desktop application framework
+- **React + TypeScript**: Modern UI with type safety
+- **Playwright**: Browser automation engine
+- **Anthropic Claude API**: AI decision-making and test planning
+- **Node.js**: Backend services
 
-## Install
+### Project Structure
 
-Clone the repo and install dependencies:
+```
+src/
+├── main/                      # Electron main process
+│   ├── services/
+│   │   ├── BrowserService.ts  # Playwright browser control
+│   │   ├── AIService.ts       # Claude AI integration
+│   │   └── TestRunner.ts      # Test orchestration
+│   ├── types/
+│   │   └── index.ts          # TypeScript type definitions
+│   └── ipc/
+│       └── handlers.ts       # IPC communication handlers
+└── renderer/                  # React UI
+    ├── components/
+    │   ├── TestRunner.tsx    # Main UI component
+    │   └── TestRunner.css    # Styling
+    └── App.tsx              # Application root
+```
 
+## Installation
+
+### Prerequisites
+
+- Node.js 14.x or higher
+- npm 7.x or higher
+
+### Setup
+
+1. Clone the repository:
 ```bash
-git clone --depth 1 --branch main https://github.com/electron-react-boilerplate/electron-react-boilerplate.git your-project-name
-cd your-project-name
+git clone <your-repo-url>
+cd nkeruka
+```
+
+2. Install dependencies:
+```bash
 npm install
 ```
 
-**Having issues installing? See our [debugging guide](https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues/400)**
+3. Install Playwright browsers:
+```bash
+npx playwright install chromium
+```
 
-## Starting Development
+## Usage
 
-Start the app in the `dev` environment:
+### Development Mode
+
+Start the app in development mode with hot-reload:
 
 ```bash
 npm start
 ```
 
-## Packaging for Production
+### Using the Application
 
-To package apps for the local platform:
+1. **Configure Your Test**:
+   - Enter the website URL you want to test
+   - Describe your test objective (e.g., "Fill out the contact form and submit")
+   - Enter your Anthropic API key
+   - Optionally enable headless mode
+
+2. **Run the Test**:
+   - Click "Start Test"
+   - Watch as the AI agent navigates your site
+   - See real-time progress updates
+
+3. **Review Results**:
+   - View the test summary
+   - Check console logs for errors
+   - Review network activity
+   - Examine screenshots
+   - Save the report as JSON
+
+### Example Test Objectives
+
+- "Navigate to the login page and attempt to log in with test credentials"
+- "Find the pricing page and verify all plan options are visible"
+- "Add a product to cart and proceed to checkout"
+- "Fill out the contact form with test data and submit"
+- "Search for 'example' and verify results are displayed"
+
+## Building for Production
+
+### Package for All Platforms
 
 ```bash
 npm run package
 ```
 
-## Docs
+This creates distributable packages in the `release/build` directory.
 
-See our [docs and guides here](https://electron-react-boilerplate.js.org/docs/installation)
+### Platform-Specific Builds
 
-## Community
+The application uses `electron-builder` and is configured to build:
+- **Windows**: NSIS installer (.exe)
+- **macOS**: DMG and App Bundle
+- **Linux**: AppImage
 
-Join our Discord: https://discord.gg/Fjy3vfgy5q
+## Configuration
 
-## Sponsors
+### Anthropic API Key
 
-<a href="https://palette.dev">
-  <img src=".erb/img/palette-sponsor-banner.svg" width="100%" />
-</a>
+You need an Anthropic API key to use the AI features:
 
-## Donations
+1. Sign up at [Anthropic](https://www.anthropic.com)
+2. Generate an API key
+3. Enter it in the application settings
 
-**Donations will ensure the following:**
+**Note**: The API key is not stored permanently and must be entered each session for security.
 
-- 🔨 Long term maintenance of the project
-- 🛣 Progress on the [roadmap](https://electron-react-boilerplate.js.org/docs/roadmap)
-- 🐛 Quick responses to bug reports and help requests
+## How It Works
 
-## Backers
+### Test Execution Flow
 
-Support us with a monthly donation and help us continue our activities. [[Become a backer](https://opencollective.com/electron-react-boilerplate-594#backer)]
+1. **Initialization**:
+   - Launches Playwright browser
+   - Sets up console and network listeners
+   - Navigates to target URL
 
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/0/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/0/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/1/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/1/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/2/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/2/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/3/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/3/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/4/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/4/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/5/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/5/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/6/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/6/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/7/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/7/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/8/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/8/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/9/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/9/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/10/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/10/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/11/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/11/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/12/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/12/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/13/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/13/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/14/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/14/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/15/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/15/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/16/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/16/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/17/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/17/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/18/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/18/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/19/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/19/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/20/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/20/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/21/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/21/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/22/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/22/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/23/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/23/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/24/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/24/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/25/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/25/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/26/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/26/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/27/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/27/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/28/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/28/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/backer/29/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/backer/29/avatar.svg"></a>
+2. **AI Loop**:
+   - Takes screenshot of current page
+   - Analyzes page accessibility tree
+   - Claude decides next action based on test objective
+   - Executes action (click, fill, navigate, etc.)
+   - Repeats until objective is complete or max steps reached
 
-## Sponsors
+3. **Result Collection**:
+   - Gathers all console logs
+   - Collects network requests
+   - Takes final screenshots
+   - Generates AI-powered summary
 
-Become a sponsor and get your logo on our README on Github with a link to your site. [[Become a sponsor](https://opencollective.com/electron-react-boilerplate-594-594#sponsor)]
+4. **Report Generation**:
+   - Compiles all test data
+   - Creates structured JSON report
+   - Displays results in UI
 
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/0/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/0/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/1/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/1/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/2/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/2/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/3/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/3/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/4/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/4/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/5/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/5/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/6/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/6/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/7/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/7/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/8/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/8/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/9/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/9/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/10/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/10/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/11/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/11/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/12/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/12/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/13/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/13/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/14/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/14/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/15/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/15/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/16/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/16/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/17/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/17/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/18/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/18/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/19/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/19/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/20/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/20/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/21/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/21/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/22/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/22/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/23/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/23/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/24/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/24/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/25/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/25/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/26/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/26/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/27/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/27/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/28/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/28/avatar.svg"></a>
-<a href="https://opencollective.com/electron-react-boilerplate-594/sponsor/29/website" target="_blank"><img src="https://opencollective.com/electron-react-boilerplate-594/sponsor/29/avatar.svg"></a>
+### AI Decision Making
 
-## Maintainers
+The AI service uses Claude's vision capabilities to:
+- Understand page layout from screenshots
+- Parse accessibility trees for element selection
+- Reason about next actions based on test objectives
+- Validate whether test goals were achieved
 
-- [Amila Welihinda](https://github.com/amilajack)
-- [John Tran](https://github.com/jooohhn)
-- [C. T. Lin](https://github.com/chentsulin)
-- [Jhen-Jie Hong](https://github.com/jhen0409)
+## API Reference
+
+### Window API (Renderer Process)
+
+```typescript
+window.electron.test.start(config: TestConfig): Promise<TestResult>
+window.electron.test.stop(): Promise<void>
+window.electron.test.getStatus(): Promise<TestResult | null>
+window.electron.test.saveReport(result: TestResult): Promise<string>
+window.electron.test.onProgress(callback: (step: TestStep) => void): void
+```
+
+### Main Process Services
+
+**BrowserService**: Playwright browser automation
+- `launch()`: Start browser
+- `navigate(url)`: Go to URL
+- `click(selector)`: Click element
+- `fill(selector, value)`: Fill input
+- `screenshot()`: Capture screenshot
+- `getConsoleLogs()`: Get console messages
+
+**AIService**: Claude AI integration
+- `analyzePageAndDecideAction()`: Get next action from AI
+- `validateResults()`: Check test completion
+- `generateSummary()`: Create test report
+
+**TestRunner**: Orchestration
+- `startTest(config)`: Execute full test
+- `stopTest()`: Cancel running test
+
+## Troubleshooting
+
+### Common Issues
+
+**"Failed to launch browser"**
+- Ensure Playwright browsers are installed: `npx playwright install`
+- Check that you have sufficient disk space
+
+**"AI analysis failed"**
+- Verify your Anthropic API key is correct
+- Check your internet connection
+- Ensure you have API credits
+
+**"Test stuck in running state"**
+- The AI may be analyzing a complex page
+- Max steps limit is 20 - test will auto-stop
+- Use "Stop Test" button to manually cancel
+
+### Debug Mode
+
+Enable detailed logging by setting environment variable:
+```bash
+DEBUG=* npm start
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues and pull requests.
+
+### Development Setup
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `npm test`
+5. Submit a pull request
+
+## Security Considerations
+
+- **API Keys**: Never commit API keys to version control
+- **Sensitive Data**: Be careful when testing sites with real user data
+- **Network**: Test execution requires internet for AI API calls
+- **Permissions**: Browser runs with standard permissions
 
 ## License
 
-MIT © [Electron React Boilerplate](https://github.com/electron-react-boilerplate)
+MIT License - see LICENSE file for details
 
-[github-actions-status]: https://github.com/electron-react-boilerplate/electron-react-boilerplate/workflows/Test/badge.svg
-[github-actions-url]: https://github.com/electron-react-boilerplate/electron-react-boilerplate/actions
-[github-tag-image]: https://img.shields.io/github/tag/electron-react-boilerplate/electron-react-boilerplate.svg?label=version
-[github-tag-url]: https://github.com/electron-react-boilerplate/electron-react-boilerplate/releases/latest
-[stackoverflow-img]: https://img.shields.io/badge/stackoverflow-electron_react_boilerplate-blue.svg
-[stackoverflow-url]: https://stackoverflow.com/questions/tagged/electron-react-boilerplate
+## Roadmap
+
+- [ ] Support for multiple AI providers (OpenAI, local models)
+- [ ] Visual regression testing
+- [ ] Test script recording and playback
+- [ ] Integration with CI/CD pipelines
+- [ ] Scheduled test execution
+- [ ] Multi-page test flows
+- [ ] Custom assertions and validations
+- [ ] Team collaboration features
+
+## Support
+
+For issues and questions:
+- GitHub Issues: [Create an issue](https://github.com/your-repo/issues)
+- Documentation: See `/docs` folder
+
+## Acknowledgments
+
+Built with:
+- [Electron React Boilerplate](https://github.com/electron-react-boilerplate/electron-react-boilerplate)
+- [Playwright](https://playwright.dev/)
+- [Anthropic Claude](https://www.anthropic.com/)
+- [React](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)

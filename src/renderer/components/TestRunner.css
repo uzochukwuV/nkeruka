@@ -1,0 +1,307 @@
+.test-runner {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.header h1 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 32px;
+}
+
+.header p {
+  margin: 10px 0 0;
+  color: #7f8c8d;
+  font-size: 16px;
+}
+
+.config-section,
+.progress-section,
+.result-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.config-section h2,
+.progress-section h2,
+.result-section h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #34495e;
+}
+
+.form-group input[type='text'],
+.form-group input[type='password'],
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-group textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-group.checkbox {
+  display: flex;
+  align-items: center;
+}
+
+.form-group.checkbox label {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  cursor: pointer;
+}
+
+.form-group.checkbox input {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-primary,
+.btn-danger {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background-color: #3498db;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+.btn-danger {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c0392b;
+}
+
+.current-step {
+  padding: 15px;
+  background: white;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+.steps-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 40px 100px 1fr 80px;
+  gap: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.step-number {
+  font-weight: bold;
+  color: #7f8c8d;
+}
+
+.step-action {
+  font-weight: 500;
+  color: #2c3e50;
+}
+
+.step-target {
+  color: #555;
+  font-size: 14px;
+}
+
+.step-status {
+  text-align: right;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-running {
+  color: #3498db;
+}
+
+.status-success {
+  color: #27ae60;
+}
+
+.status-failed {
+  color: #e74c3c;
+}
+
+.status-pending {
+  color: #95a5a6;
+}
+
+.step-result,
+.step-error {
+  grid-column: 2 / -1;
+  font-size: 13px;
+  padding: 8px;
+  border-radius: 4px;
+  margin-top: 5px;
+}
+
+.step-result {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.step-error {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.result-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.result-item {
+  background: white;
+  padding: 15px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.result-item strong {
+  color: #7f8c8d;
+  font-size: 14px;
+}
+
+.result-summary-text {
+  background: white;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.result-summary-text h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.result-errors {
+  background: #ffebee;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.result-errors h3 {
+  margin-top: 0;
+  color: #c62828;
+}
+
+.error-item {
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.error-item pre {
+  margin: 5px 0 0;
+  font-size: 12px;
+  overflow-x: auto;
+}
+
+.console-logs {
+  background: white;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+.console-logs h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.logs-list {
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.log-item {
+  padding: 5px 10px;
+  border-left: 3px solid #ddd;
+  margin-bottom: 5px;
+}
+
+.log-error {
+  border-left-color: #e74c3c;
+  background: #ffebee;
+}
+
+.log-warn {
+  border-left-color: #f39c12;
+  background: #fff3cd;
+}
+
+.log-info {
+  border-left-color: #3498db;
+  background: #d6eaf8;
+}
+
+.log-type {
+  display: inline-block;
+  width: 60px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
