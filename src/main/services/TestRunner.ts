@@ -12,6 +12,7 @@ export class TestRunner {
   private aiService: AIService | null = null;
   private currentTest: TestResult | null = null;
   private maxSteps = 20; // Prevent infinite loops
+  private readonly MAX_SCREENSHOTS = 10; // Limit screenshot storage (~5MB max)
 
   constructor() {
     this.browserService = new BrowserService();
@@ -72,6 +73,13 @@ export class TestRunner {
         // Take screenshot
         const screenshot = await this.browserService.screenshot();
         this.currentTest.screenshots.push(screenshot);
+
+        // Limit screenshot array to prevent unbounded growth
+        if (this.currentTest.screenshots.length > this.MAX_SCREENSHOTS) {
+          this.currentTest.screenshots = this.currentTest.screenshots.slice(
+            -this.MAX_SCREENSHOTS,
+          );
+        }
 
         // Get page state
         const accessibilityTree =
@@ -172,6 +180,13 @@ export class TestRunner {
   }
 
   /**
+   * Wait helper for visual feedback delays
+   */
+  private async waitForVisual(ms = 300): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
    * Execute a single test step
    */
   private async executeStep(
@@ -186,31 +201,31 @@ export class TestRunner {
       switch (step.action) {
         case 'navigate':
           await this.browserService.navigate(step.target!);
-          // Take screenshot after navigation
+          // Take screenshot after navigation (page already waits for networkidle)
           await this.browserService.screenshot();
           break;
 
         case 'click':
-          // Highlight element before clicking
+          // Highlight element before clicking (brief visual feedback)
           if (step.target) {
             await this.browserService.highlightElement(step.target);
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await this.waitForVisual(300); // Reduced from 500ms
           }
           await this.browserService.click(step.target!);
-          // Take screenshot after action
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Brief wait for UI updates after click
+          await this.waitForVisual(300); // Reduced from 500ms
           await this.browserService.screenshot();
           break;
 
         case 'fill':
-          // Highlight element before filling
+          // Highlight element before filling (brief visual feedback)
           if (step.target) {
             await this.browserService.highlightElement(step.target);
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await this.waitForVisual(300); // Reduced from 500ms
           }
           await this.browserService.fill(step.target!, step.value!);
-          // Take screenshot after action
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Brief wait for UI updates after filling
+          await this.waitForVisual(300); // Reduced from 500ms
           await this.browserService.screenshot();
           break;
 

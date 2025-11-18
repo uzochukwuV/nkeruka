@@ -3,6 +3,9 @@
  * Manages recurring test schedules and autonomous execution
  */
 
+import { app } from 'electron';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { TestRunner } from './TestRunner';
 import { TestConfig, TestResult, TestStep } from '../types';
 
@@ -37,7 +40,10 @@ export class SchedulerService {
   private currentExecutions = 0;
 
   constructor() {
-    this.loadScheduledTests();
+    // Load scheduled tests asynchronously (fire and forget)
+    this.loadScheduledTests().catch((error) => {
+      console.error('[Scheduler] Failed to load tests on init:', error);
+    });
   }
 
   /**
@@ -186,7 +192,10 @@ export class SchedulerService {
       // Over limit, decrement and reschedule
       this.currentExecutions--;
       console.log(`[Scheduler] Max concurrent tests reached (${this.maxConcurrentTests}), rescheduling ${test.name}`);
-      setTimeout(() => this.scheduleTest(test), 5000);
+
+      // Track the rescheduling timer
+      const rescheduleTimer = setTimeout(() => this.scheduleTest(test), 5000);
+      this.timers.set(test.id, rescheduleTimer);
       return;
     }
 
@@ -289,33 +298,48 @@ export class SchedulerService {
   }
 
   /**
+   * Get storage file path
+   */
+  private getStoragePath(): string {
+    return path.join(app.getPath('userData'), 'scheduled-tests.json');
+  }
+
+  /**
    * Save scheduled tests to storage
    */
-  private saveScheduledTests(): void {
-    const tests = Array.from(this.scheduledTests.values());
-    // In Electron, we'll use electron-store or localStorage
-    // For now, store in memory
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('scheduledTests', JSON.stringify(tests));
+  private async saveScheduledTests(): Promise<void> {
+    try {
+      const tests = Array.from(this.scheduledTests.values());
+      const storePath = this.getStoragePath();
+      await fs.writeFile(storePath, JSON.stringify(tests, null, 2), 'utf-8');
+    } catch (error) {
+      console.error('[Scheduler] Failed to save scheduled tests:', error);
     }
   }
 
   /**
    * Load scheduled tests from storage
    */
-  private loadScheduledTests(): void {
-    if (typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem('scheduledTests');
-      if (stored) {
-        try {
-          const tests: ScheduledTest[] = JSON.parse(stored);
-          tests.forEach((test) => {
-            this.scheduledTests.set(test.id, test);
-          });
-        } catch (error) {
-          console.error('[Scheduler] Failed to load scheduled tests:', error);
-        }
+  private async loadScheduledTests(): Promise<void> {
+    try {
+      const storePath = this.getStoragePath();
+
+      // Check if file exists
+      try {
+        await fs.access(storePath);
+      } catch {
+        // File doesn't exist yet, that's okay
+        return;
       }
+
+      const data = await fs.readFile(storePath, 'utf-8');
+      const tests: ScheduledTest[] = JSON.parse(data);
+
+      tests.forEach((test) => {
+        this.scheduledTests.set(test.id, test);
+      });
+    } catch (error) {
+      console.error('[Scheduler] Failed to load scheduled tests:', error);
     }
   }
 }

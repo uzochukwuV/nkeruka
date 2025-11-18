@@ -37,12 +37,16 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
       const result = await testRunner.startTest(
         config,
         (step: TestStep) => {
-          // Send progress updates to renderer
-          mainWindow.webContents.send('test:progress', step);
+          // Send progress updates to renderer (with null check)
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('test:progress', step);
+          }
         },
         (screenshot: string) => {
-          // Stream screenshots to renderer
-          mainWindow.webContents.send('test:screenshot', screenshot);
+          // Stream screenshots to renderer (with null check)
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('test:screenshot', screenshot);
+          }
         },
       );
 
