@@ -4,9 +4,11 @@
 
 import { ipcMain, BrowserWindow } from 'electron';
 import { TestRunner } from '../services/TestRunner';
+import { SchedulerService, ScheduledTest } from '../services/SchedulerService';
 import { TestConfig, TestStep, TestResult } from '../types';
 
 let testRunner: TestRunner | null = null;
+let schedulerService: SchedulerService | null = null;
 
 /**
  * Setup IPC handlers
@@ -70,6 +72,165 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
         return { success: true, test };
       }
       return { success: true, test: null };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  });
+
+  /**
+   * Initialize scheduler
+   */
+  if (!schedulerService) {
+    schedulerService = new SchedulerService();
+  }
+
+  // ============================================================================
+  // SCHEDULER HANDLERS - Autonomous Test Execution
+  // ============================================================================
+
+  /**
+   * Start scheduler bot
+   */
+  ipcMain.handle('scheduler:start', async () => {
+    try {
+      if (!schedulerService) {
+        schedulerService = new SchedulerService();
+      }
+      schedulerService.start();
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  });
+
+  /**
+   * Stop scheduler bot
+   */
+  ipcMain.handle('scheduler:stop', async () => {
+    try {
+      if (schedulerService) {
+        schedulerService.stop();
+      }
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  });
+
+  /**
+   * Add scheduled test
+   */
+  ipcMain.handle('scheduler:add-test', async (_event, test: ScheduledTest) => {
+    try {
+      if (!schedulerService) {
+        schedulerService = new SchedulerService();
+      }
+      schedulerService.addScheduledTest(test);
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  });
+
+  /**
+   * Remove scheduled test
+   */
+  ipcMain.handle('scheduler:remove-test', async (_event, testId: string) => {
+    try {
+      if (schedulerService) {
+        schedulerService.removeScheduledTest(testId);
+      }
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  });
+
+  /**
+   * Pause scheduled test
+   */
+  ipcMain.handle('scheduler:pause-test', async (_event, testId: string) => {
+    try {
+      if (schedulerService) {
+        schedulerService.pauseScheduledTest(testId);
+      }
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  });
+
+  /**
+   * Resume scheduled test
+   */
+  ipcMain.handle('scheduler:resume-test', async (_event, testId: string) => {
+    try {
+      if (schedulerService) {
+        schedulerService.resumeScheduledTest(testId);
+      }
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  });
+
+  /**
+   * Get all scheduled tests
+   */
+  ipcMain.handle('scheduler:get-tests', async () => {
+    try {
+      if (!schedulerService) {
+        return { success: true, tests: [] };
+      }
+      const tests = schedulerService.getScheduledTests();
+      return { success: true, tests };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  });
+
+  /**
+   * Get scheduler status
+   */
+  ipcMain.handle('scheduler:get-status', async () => {
+    try {
+      if (!schedulerService) {
+        return {
+          success: true,
+          status: {
+            isRunning: false,
+            totalTests: 0,
+            activeTests: 0,
+            currentExecutions: 0,
+          },
+        };
+      }
+      const status = schedulerService.getStatus();
+      return { success: true, status };
     } catch (error) {
       return {
         success: false,

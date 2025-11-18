@@ -34,6 +34,16 @@ const electronHandler = {
       ipcRenderer.on('test:screenshot', (_event, screenshot) => callback(screenshot));
     },
   },
+  scheduler: {
+    start: () => ipcRenderer.invoke('scheduler:start'),
+    stop: () => ipcRenderer.invoke('scheduler:stop'),
+    addTest: (test: any) => ipcRenderer.invoke('scheduler:add-test', test),
+    removeTest: (testId: string) => ipcRenderer.invoke('scheduler:remove-test', testId),
+    pauseTest: (testId: string) => ipcRenderer.invoke('scheduler:pause-test', testId),
+    resumeTest: (testId: string) => ipcRenderer.invoke('scheduler:resume-test', testId),
+    getTests: () => ipcRenderer.invoke('scheduler:get-tests'),
+    getStatus: () => ipcRenderer.invoke('scheduler:get-status'),
+  },
 };
 
 contextBridge.exposeInMainWorld('electron', electronHandler);
