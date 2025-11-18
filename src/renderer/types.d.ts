@@ -65,8 +65,8 @@ interface Window {
         path?: string;
         error?: string;
       }>;
-      onProgress: (callback: (step: TestStep) => void) => void;
-      onScreenshot: (callback: (screenshot: string) => void) => void;
+      onProgress: (callback: (step: TestStep) => void) => () => void;
+      onScreenshot: (callback: (screenshot: string) => void) => () => void;
     };
   };
 }

@@ -19,6 +19,17 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
    */
   ipcMain.handle('test:start', async (_event, config: TestConfig) => {
     try {
+      // Clean up previous test runner if it exists
+      if (testRunner) {
+        try {
+          await testRunner.stopTest();
+          console.log('[IPC] Stopped previous test before starting new one');
+        } catch (e) {
+          console.error('[IPC] Failed to stop previous test:', e);
+        }
+        testRunner = null;
+      }
+
       // Create new test runner
       testRunner = new TestRunner();
 
@@ -41,6 +52,12 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
         success: false,
         error: error instanceof Error ? error.message : String(error),
       };
+    } finally {
+      // Clean up after test completes or fails
+      const currentTest = testRunner?.getCurrentTest();
+      if (currentTest && currentTest.status !== 'running') {
+        testRunner = null;
+      }
     }
   });
 

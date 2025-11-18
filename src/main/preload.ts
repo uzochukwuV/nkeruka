@@ -28,10 +28,16 @@ const electronHandler = {
     getStatus: () => ipcRenderer.invoke('test:status'),
     saveReport: (result: any) => ipcRenderer.invoke('test:save-report', result),
     onProgress: (callback: (step: any) => void) => {
-      ipcRenderer.on('test:progress', (_event, step) => callback(step));
+      const handler = (_event: any, step: any) => callback(step);
+      ipcRenderer.on('test:progress', handler);
+      // Return cleanup function
+      return () => ipcRenderer.removeListener('test:progress', handler);
     },
     onScreenshot: (callback: (screenshot: string) => void) => {
-      ipcRenderer.on('test:screenshot', (_event, screenshot) => callback(screenshot));
+      const handler = (_event: any, screenshot: string) => callback(screenshot);
+      ipcRenderer.on('test:screenshot', handler);
+      // Return cleanup function
+      return () => ipcRenderer.removeListener('test:screenshot', handler);
     },
   },
   scheduler: {

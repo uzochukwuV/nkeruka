@@ -13,6 +13,9 @@ export class BrowserService {
   private consoleLogs: ConsoleMessage[] = [];
   private networkRequests: NetworkRequest[] = [];
   private screenshotCallback: ((screenshot: string) => void) | null = null;
+  private eventListeners: Array<{ event: string; handler: Function }> = [];
+  private readonly MAX_LOGS = 1000; // Prevent unbounded array growth
+  private readonly MAX_REQUESTS = 1000;
 
   /**
    * Launch browser instance
@@ -44,7 +47,7 @@ export class BrowserService {
     if (!this.page) return;
 
     // Console message listener
-    this.page.on('console', (msg) => {
+    const consoleHandler = (msg: any) => {
       const consoleMessage: ConsoleMessage = {
         type: msg.type() as ConsoleMessage['type'],
         text: msg.text(),
@@ -52,10 +55,17 @@ export class BrowserService {
         location: msg.location().url,
       };
       this.consoleLogs.push(consoleMessage);
-    });
+
+      // Prevent unbounded growth
+      if (this.consoleLogs.length > this.MAX_LOGS) {
+        this.consoleLogs = this.consoleLogs.slice(-this.MAX_LOGS);
+      }
+    };
+    this.page.on('console', consoleHandler);
+    this.eventListeners.push({ event: 'console', handler: consoleHandler });
 
     // Network request listener
-    this.page.on('response', async (response) => {
+    const responseHandler = async (response: any) => {
       try {
         const request = response.request();
         const timing = response.timing();
@@ -69,20 +79,34 @@ export class BrowserService {
           duration: timing?.responseEnd || 0,
         };
         this.networkRequests.push(networkRequest);
+
+        // Prevent unbounded growth
+        if (this.networkRequests.length > this.MAX_REQUESTS) {
+          this.networkRequests = this.networkRequests.slice(-this.MAX_REQUESTS);
+        }
       } catch (error) {
         // Ignore errors from detached frames
       }
-    });
+    };
+    this.page.on('response', responseHandler);
+    this.eventListeners.push({ event: 'response', handler: responseHandler });
 
     // Page error listener
-    this.page.on('pageerror', (error) => {
+    const errorHandler = (error: Error) => {
       const consoleMessage: ConsoleMessage = {
         type: 'error',
         text: error.message,
         timestamp: Date.now(),
       };
       this.consoleLogs.push(consoleMessage);
-    });
+
+      // Prevent unbounded growth
+      if (this.consoleLogs.length > this.MAX_LOGS) {
+        this.consoleLogs = this.consoleLogs.slice(-this.MAX_LOGS);
+      }
+    };
+    this.page.on('pageerror', errorHandler);
+    this.eventListeners.push({ event: 'pageerror', handler: errorHandler });
   }
 
   /**
@@ -255,11 +279,24 @@ export class BrowserService {
    * Close browser
    */
   async close(): Promise<void> {
-    if (this.page) await this.page.close();
+    // Remove all event listeners to prevent memory leaks
+    if (this.page) {
+      this.eventListeners.forEach(({ event, handler }) => {
+        this.page?.off(event as any, handler as any);
+      });
+      this.eventListeners = [];
+
+      await this.page.close();
+    }
+
     if (this.context) await this.context.close();
     if (this.browser) await this.browser.close();
+
     this.page = null;
     this.context = null;
     this.browser = null;
+    this.screenshotCallback = null;
+    this.consoleLogs = [];
+    this.networkRequests = [];
   }
 }

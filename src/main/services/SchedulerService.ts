@@ -179,18 +179,19 @@ export class SchedulerService {
    * Execute a scheduled test
    */
   private async executeScheduledTest(test: ScheduledTest): Promise<void> {
-    // Check if we can execute (max concurrent limit)
-    if (this.currentExecutions >= this.maxConcurrentTests) {
-      console.log(`[Scheduler] Max concurrent tests reached, rescheduling ${test.name}`);
-      // Reschedule for later
+    // Atomically increment and check (prevents race condition)
+    this.currentExecutions++;
+
+    if (this.currentExecutions > this.maxConcurrentTests) {
+      // Over limit, decrement and reschedule
+      this.currentExecutions--;
+      console.log(`[Scheduler] Max concurrent tests reached (${this.maxConcurrentTests}), rescheduling ${test.name}`);
       setTimeout(() => this.scheduleTest(test), 5000);
       return;
     }
 
-    this.currentExecutions++;
     const startTime = Date.now();
-
-    console.log(`[Scheduler] Executing scheduled test: ${test.name}`);
+    console.log(`[Scheduler] Executing scheduled test: ${test.name} (${this.currentExecutions}/${this.maxConcurrentTests})`);
 
     try {
       const runner = new TestRunner();

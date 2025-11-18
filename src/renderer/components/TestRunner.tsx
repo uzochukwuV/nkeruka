@@ -39,28 +39,34 @@ export default function TestRunner() {
 
   useEffect(() => {
     // Listen for test progress
-    if (window.electron?.test) {
-      window.electron.test.onProgress((step: TestStep) => {
-        setSteps((prev) => {
-          const existingIndex = prev.findIndex((s) => s.id === step.id);
-          if (existingIndex >= 0) {
-            const updated = [...prev];
-            updated[existingIndex] = step;
-            return updated;
-          }
-          return [...prev, step];
-        });
+    if (!window.electron?.test) return;
 
-        if (step.status === 'running') {
-          setCurrentStep(`${step.action} ${step.target || ''}`);
+    const cleanupProgress = window.electron.test.onProgress((step: TestStep) => {
+      setSteps((prev) => {
+        const existingIndex = prev.findIndex((s) => s.id === step.id);
+        if (existingIndex >= 0) {
+          const updated = [...prev];
+          updated[existingIndex] = step;
+          return updated;
         }
+        return [...prev, step];
       });
 
-      // Listen for screenshot updates
-      window.electron.test.onScreenshot((screenshot: string) => {
-        setLiveScreenshot(screenshot);
-      });
-    }
+      if (step.status === 'running') {
+        setCurrentStep(`${step.action} ${step.target || ''}`);
+      }
+    });
+
+    // Listen for screenshot updates
+    const cleanupScreenshot = window.electron.test.onScreenshot((screenshot: string) => {
+      setLiveScreenshot(screenshot);
+    });
+
+    // Cleanup function to remove listeners on unmount
+    return () => {
+      cleanupProgress();
+      cleanupScreenshot();
+    };
   }, []);
 
   const handleStart = async () => {
