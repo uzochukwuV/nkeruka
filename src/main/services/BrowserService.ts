@@ -12,6 +12,7 @@ export class BrowserService {
   private page: Page | null = null;
   private consoleLogs: ConsoleMessage[] = [];
   private networkRequests: NetworkRequest[] = [];
+  private screenshotCallback: ((screenshot: string) => void) | null = null;
 
   /**
    * Launch browser instance
@@ -98,7 +99,85 @@ export class BrowserService {
   async screenshot(): Promise<string> {
     if (!this.page) throw new Error('Browser not launched');
     const buffer = await this.page.screenshot({ fullPage: false });
-    return buffer.toString('base64');
+    const base64 = buffer.toString('base64');
+
+    // Notify callback if set (for live streaming)
+    if (this.screenshotCallback) {
+      this.screenshotCallback(base64);
+    }
+
+    return base64;
+  }
+
+  /**
+   * Set callback for screenshot streaming
+   */
+  setScreenshotCallback(callback: (screenshot: string) => void): void {
+    this.screenshotCallback = callback;
+  }
+
+  /**
+   * Highlight element on page (visual feedback)
+   */
+  async highlightElement(selector: string): Promise<void> {
+    if (!this.page) return;
+
+    try {
+      await this.page.evaluate((sel) => {
+        const element = document.querySelector(sel);
+        if (element) {
+          const overlay = document.createElement('div');
+          overlay.id = 'playwright-highlight';
+          overlay.style.cssText = `
+            position: absolute;
+            border: 3px solid #FF6B6B;
+            background: rgba(255, 107, 107, 0.2);
+            pointer-events: none;
+            z-index: 999999;
+            animation: pulse 1s infinite;
+          `;
+
+          // Add pulse animation
+          const style = document.createElement('style');
+          style.textContent = `
+            @keyframes pulse {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0.5; }
+            }
+          `;
+          document.head.appendChild(style);
+
+          const rect = element.getBoundingClientRect();
+          overlay.style.left = `${rect.left + window.scrollX}px`;
+          overlay.style.top = `${rect.top + window.scrollY}px`;
+          overlay.style.width = `${rect.width}px`;
+          overlay.style.height = `${rect.height}px`;
+
+          document.body.appendChild(overlay);
+
+          // Remove after 2 seconds
+          setTimeout(() => overlay.remove(), 2000);
+        }
+      }, selector);
+    } catch (error) {
+      // Ignore if element not found
+    }
+  }
+
+  /**
+   * Remove all highlights
+   */
+  async clearHighlights(): Promise<void> {
+    if (!this.page) return;
+
+    try {
+      await this.page.evaluate(() => {
+        const highlights = document.querySelectorAll('#playwright-highlight');
+        highlights.forEach(h => h.remove());
+      });
+    } catch (error) {
+      // Ignore errors
+    }
   }
 
   /**

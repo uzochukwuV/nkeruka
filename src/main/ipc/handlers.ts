@@ -20,12 +20,16 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
       // Create new test runner
       testRunner = new TestRunner();
 
-      // Start test with progress callback
+      // Start test with progress and screenshot callbacks
       const result = await testRunner.startTest(
         config,
         (step: TestStep) => {
           // Send progress updates to renderer
           mainWindow.webContents.send('test:progress', step);
+        },
+        (screenshot: string) => {
+          // Stream screenshots to renderer
+          mainWindow.webContents.send('test:screenshot', screenshot);
         },
       );
 

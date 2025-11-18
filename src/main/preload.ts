@@ -2,7 +2,7 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
-export type Channels = 'ipc-example' | 'test:progress';
+export type Channels = 'ipc-example' | 'test:progress' | 'test:screenshot';
 
 const electronHandler = {
   ipcRenderer: {
@@ -29,6 +29,9 @@ const electronHandler = {
     saveReport: (result: any) => ipcRenderer.invoke('test:save-report', result),
     onProgress: (callback: (step: any) => void) => {
       ipcRenderer.on('test:progress', (_event, step) => callback(step));
+    },
+    onScreenshot: (callback: (screenshot: string) => void) => {
+      ipcRenderer.on('test:screenshot', (_event, screenshot) => callback(screenshot));
     },
   },
 };

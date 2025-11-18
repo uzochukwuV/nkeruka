@@ -23,6 +23,7 @@ export class TestRunner {
   async startTest(
     config: TestConfig,
     progressCallback?: (step: TestStep) => void,
+    screenshotCallback?: (screenshot: string) => void,
   ): Promise<TestResult> {
     try {
       // Initialize AI service
@@ -43,6 +44,11 @@ export class TestRunner {
 
       // Launch browser
       await this.browserService.launch(config.headless || false);
+
+      // Set up screenshot streaming
+      if (screenshotCallback) {
+        this.browserService.setScreenshotCallback(screenshotCallback);
+      }
 
       // Navigate to URL
       await this.executeStep(
@@ -180,14 +186,32 @@ export class TestRunner {
       switch (step.action) {
         case 'navigate':
           await this.browserService.navigate(step.target!);
+          // Take screenshot after navigation
+          await this.browserService.screenshot();
           break;
 
         case 'click':
+          // Highlight element before clicking
+          if (step.target) {
+            await this.browserService.highlightElement(step.target);
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
           await this.browserService.click(step.target!);
+          // Take screenshot after action
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await this.browserService.screenshot();
           break;
 
         case 'fill':
+          // Highlight element before filling
+          if (step.target) {
+            await this.browserService.highlightElement(step.target);
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
           await this.browserService.fill(step.target!, step.value!);
+          // Take screenshot after action
+          await new Promise(resolve => setTimeout(resolve, 500));
+          await this.browserService.screenshot();
           break;
 
         case 'wait':

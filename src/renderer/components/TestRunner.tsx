@@ -35,6 +35,7 @@ export default function TestRunner() {
   const [steps, setSteps] = useState<TestStep[]>([]);
   const [currentStep, setCurrentStep] = useState<string>('');
   const [testResult, setTestResult] = useState<any>(null);
+  const [liveScreenshot, setLiveScreenshot] = useState<string>('');
 
   useEffect(() => {
     // Listen for test progress
@@ -54,6 +55,11 @@ export default function TestRunner() {
           setCurrentStep(`${step.action} ${step.target || ''}`);
         }
       });
+
+      // Listen for screenshot updates
+      window.electron.test.onScreenshot((screenshot: string) => {
+        setLiveScreenshot(screenshot);
+      });
     }
   }, []);
 
@@ -66,6 +72,7 @@ export default function TestRunner() {
     setIsRunning(true);
     setSteps([]);
     setTestResult(null);
+    setLiveScreenshot('');
     setCurrentStep('Initializing test...');
 
     try {
@@ -180,11 +187,38 @@ export default function TestRunner() {
       {(isRunning || steps.length > 0) && (
         <div className="progress-section">
           <h2>Test Progress</h2>
-          <div className="current-step">
-            <strong>Current:</strong> {currentStep}
-          </div>
 
-          <div className="steps-list">
+          <div className="preview-and-steps">
+            {/* Live Browser Preview */}
+            <div className="preview-panel">
+              <h3>Live Preview</h3>
+              {liveScreenshot ? (
+                <div className="preview-container">
+                  <img
+                    src={`data:image/png;base64,${liveScreenshot}`}
+                    alt="Live browser preview"
+                    className="preview-image"
+                  />
+                  <div className="preview-overlay">
+                    <div className="current-action">{currentStep}</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="preview-placeholder">
+                  <div className="spinner"></div>
+                  <p>Loading preview...</p>
+                </div>
+              )}
+            </div>
+
+            {/* Steps List */}
+            <div className="steps-panel">
+              <h3>Test Steps</h3>
+              <div className="current-step">
+                <strong>Current:</strong> {currentStep}
+              </div>
+
+              <div className="steps-list">
             {steps.map((step, index) => (
               <div key={step.id} className={`step step-${step.status}`}>
                 <span className="step-number">{index + 1}</span>
@@ -199,6 +233,8 @@ export default function TestRunner() {
                 {step.error && <div className="step-error">{step.error}</div>}
               </div>
             ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
