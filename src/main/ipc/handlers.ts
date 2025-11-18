@@ -11,6 +11,39 @@ let testRunner: TestRunner | null = null;
 let schedulerService: SchedulerService | null = null;
 
 /**
+ * Validate test configuration
+ */
+function validateTestConfig(config: TestConfig): { valid: boolean; error?: string } {
+  // Check URL is provided
+  if (!config.url || typeof config.url !== 'string' || config.url.trim() === '') {
+    return { valid: false, error: 'URL is required' };
+  }
+
+  // Check URL is valid
+  try {
+    new URL(config.url);
+  } catch {
+    return { valid: false, error: 'URL is not a valid URL format' };
+  }
+
+  // Check test objective is provided
+  if (!config.testObjective || typeof config.testObjective !== 'string' || config.testObjective.trim() === '') {
+    return { valid: false, error: 'Test objective is required' };
+  }
+
+  // Check API key is provided and has correct format
+  if (!config.anthropicApiKey || typeof config.anthropicApiKey !== 'string') {
+    return { valid: false, error: 'Anthropic API key is required' };
+  }
+
+  if (!config.anthropicApiKey.startsWith('sk-ant-')) {
+    return { valid: false, error: 'Invalid Anthropic API key format (should start with sk-ant-)' };
+  }
+
+  return { valid: true };
+}
+
+/**
  * Setup IPC handlers
  */
 export function setupIPCHandlers(mainWindow: BrowserWindow) {
@@ -19,6 +52,12 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
    */
   ipcMain.handle('test:start', async (_event, config: TestConfig) => {
     try {
+      // Validate config before proceeding
+      const validation = validateTestConfig(config);
+      if (!validation.valid) {
+        return { success: false, error: validation.error };
+      }
+
       // Clean up previous test runner if it exists
       if (testRunner) {
         try {

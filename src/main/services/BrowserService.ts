@@ -5,6 +5,7 @@
 
 import { chromium, Browser, Page, BrowserContext } from 'playwright';
 import { ConsoleMessage, NetworkRequest, TestStep } from '../types';
+import { TEST_CONFIGURATION, BROWSER_CONFIG } from '../constants';
 
 export class BrowserService {
   private browser: Browser | null = null;
@@ -14,8 +15,8 @@ export class BrowserService {
   private networkRequests: NetworkRequest[] = [];
   private screenshotCallback: ((screenshot: string) => void) | null = null;
   private eventListeners: Array<{ event: string; handler: Function }> = [];
-  private readonly MAX_LOGS = 1000; // Prevent unbounded array growth
-  private readonly MAX_REQUESTS = 1000;
+  private readonly MAX_LOGS = TEST_CONFIGURATION.MAX_CONSOLE_LOGS;
+  private readonly MAX_REQUESTS = TEST_CONFIGURATION.MAX_NETWORK_REQUESTS;
 
   /**
    * Launch browser instance
@@ -28,7 +29,10 @@ export class BrowserService {
       });
 
       this.context = await this.browser.newContext({
-        viewport: { width: 1280, height: 720 },
+        viewport: {
+          width: BROWSER_CONFIG.DEFAULT_VIEWPORT_WIDTH,
+          height: BROWSER_CONFIG.DEFAULT_VIEWPORT_HEIGHT
+        },
         userAgent:
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       });
@@ -179,12 +183,13 @@ export class BrowserService {
 
           document.body.appendChild(overlay);
 
-          // Remove after 2 seconds
-          setTimeout(() => overlay.remove(), 2000);
+          // Remove after highlight duration
+          setTimeout(() => overlay.remove(), BROWSER_CONFIG.HIGHLIGHT_DURATION_MS);
         }
       }, selector);
     } catch (error) {
-      // Ignore if element not found
+      console.warn(`[BrowserService] Failed to highlight element ${selector}:`, error);
+      // Continue - non-critical for test execution
     }
   }
 
@@ -200,7 +205,8 @@ export class BrowserService {
         highlights.forEach(h => h.remove());
       });
     } catch (error) {
-      // Ignore errors
+      console.warn('[BrowserService] Failed to clear highlights:', error);
+      // Continue - non-critical for test execution
     }
   }
 
@@ -282,16 +288,38 @@ export class BrowserService {
     // Remove all event listeners to prevent memory leaks
     if (this.page) {
       this.eventListeners.forEach(({ event, handler }) => {
-        this.page?.off(event as any, handler as any);
+        try {
+          this.page?.off(event as any, handler as any);
+        } catch (error) {
+          console.warn('[BrowserService] Failed to remove event listener:', error);
+        }
       });
       this.eventListeners = [];
-
-      await this.page.close();
     }
 
-    if (this.context) await this.context.close();
-    if (this.browser) await this.browser.close();
+    // Close resources with individual error handling to ensure all cleanup attempts are made
+    const closePromises = [];
 
+    if (this.page) {
+      closePromises.push(
+        this.page.close().catch(e => console.warn('[BrowserService] Failed to close page:', e))
+      );
+    }
+    if (this.context) {
+      closePromises.push(
+        this.context.close().catch(e => console.warn('[BrowserService] Failed to close context:', e))
+      );
+    }
+    if (this.browser) {
+      closePromises.push(
+        this.browser.close().catch(e => console.warn('[BrowserService] Failed to close browser:', e))
+      );
+    }
+
+    // Wait for all close operations to complete (even if some fail)
+    await Promise.all(closePromises);
+
+    // Cleanup references
     this.page = null;
     this.context = null;
     this.browser = null;

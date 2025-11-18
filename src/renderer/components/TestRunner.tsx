@@ -23,6 +23,24 @@ interface TestStep {
   error?: string;
 }
 
+interface TestResult {
+  id: string;
+  config: TestConfig;
+  steps: TestStep[];
+  consoleLogs: any[];
+  networkRequests: any[];
+  screenshots: string[];
+  startTime: number;
+  endTime: number;
+  status: 'running' | 'completed' | 'failed';
+  summary?: string;
+  errors: Array<{
+    message: string;
+    stack?: string;
+    timestamp: number;
+  }>;
+}
+
 export default function TestRunner() {
   const [config, setConfig] = useState<TestConfig>({
     url: '',
@@ -34,7 +52,7 @@ export default function TestRunner() {
   const [isRunning, setIsRunning] = useState(false);
   const [steps, setSteps] = useState<TestStep[]>([]);
   const [currentStep, setCurrentStep] = useState<string>('');
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [liveScreenshot, setLiveScreenshot] = useState<string>('');
 
   useEffect(() => {

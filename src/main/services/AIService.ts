@@ -5,6 +5,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { AIAnalysis } from '../types';
+import { AI_CONFIG } from '../constants';
 
 export class AIService {
   private client: Anthropic;
@@ -34,8 +35,8 @@ export class AIService {
       );
 
       const message = await this.client.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 2000,
+        model: AI_CONFIG.MODEL,
+        max_tokens: AI_CONFIG.MAX_TOKENS_ANALYSIS,
         messages: [
           {
             role: 'user',
@@ -105,8 +106,8 @@ Respond in JSON format:
 `;
 
       const message = await this.client.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1500,
+        model: AI_CONFIG.MODEL,
+        max_tokens: AI_CONFIG.MAX_TOKENS_VALIDATION,
         messages: [
           {
             role: 'user',
@@ -165,8 +166,8 @@ Provide a clear, professional summary of what was tested and the outcome.
 `;
 
       const message = await this.client.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1000,
+        model: AI_CONFIG.MODEL,
+        max_tokens: AI_CONFIG.MAX_TOKENS_SUMMARY,
         messages: [
           {
             role: 'user',
@@ -199,7 +200,7 @@ Previous steps taken:
 ${previousSteps.length > 0 ? previousSteps.map((step, i) => `${i + 1}. ${step}`).join('\n') : 'None yet'}
 
 Current page accessibility tree:
-${JSON.stringify(accessibilityTree, null, 2).substring(0, 3000)}
+${this.truncateAccessibilityTree(accessibilityTree, AI_CONFIG.MAX_ACCESSIBILITY_TREE_SIZE)}
 
 Based on the current page state and test objective, decide the next action.
 
@@ -226,22 +227,48 @@ If the test objective is complete, respond with:
   }
 
   /**
+   * Truncate accessibility tree with warning message
+   */
+  private truncateAccessibilityTree(tree: any, maxLength: number): string {
+    const treeStr = JSON.stringify(tree, null, 2);
+
+    if (treeStr.length <= maxLength) {
+      return treeStr;
+    }
+
+    const truncated = treeStr.substring(0, maxLength);
+    const warningMsg = `\n... (truncated - original size: ${treeStr.length} chars, showing first ${maxLength} chars)`;
+
+    console.warn(`[AIService] Accessibility tree truncated from ${treeStr.length} to ${maxLength} characters`);
+
+    return truncated + warningMsg;
+  }
+
+  /**
    * Parse AI response into structured format
    */
   private parseAIResponse(responseText: string): AIAnalysis {
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      // More specific JSON extraction - look for outermost braces
+      const jsonMatch = responseText.match(/\{[\s\S]*?\n\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        return parsed as AIAnalysis;
+
+        // Validate that the response has expected fields
+        if ('nextAction' in parsed || 'validation' in parsed || 'summary' in parsed) {
+          return parsed as AIAnalysis;
+        } else {
+          console.warn('[AIService] Parsed JSON missing expected fields, falling back to raw text');
+        }
       }
 
       // Fallback: return raw text
+      console.warn('[AIService] No valid JSON found in AI response, using raw text');
       return {
         summary: responseText,
       };
     } catch (error) {
+      console.error('[AIService] Failed to parse AI response:', error);
       return {
         summary: responseText,
       };

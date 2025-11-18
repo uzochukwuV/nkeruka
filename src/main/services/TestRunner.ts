@@ -5,14 +5,15 @@
 import { BrowserService } from './BrowserService';
 import { AIService } from './AIService';
 import { TestConfig, TestResult, TestStep } from '../types';
+import { TEST_CONFIGURATION } from '../constants';
 import { v4 as uuidv4 } from 'uuid';
 
 export class TestRunner {
   private browserService: BrowserService;
   private aiService: AIService | null = null;
   private currentTest: TestResult | null = null;
-  private maxSteps = 20; // Prevent infinite loops
-  private readonly MAX_SCREENSHOTS = 10; // Limit screenshot storage (~5MB max)
+  private maxSteps = TEST_CONFIGURATION.MAX_TEST_STEPS;
+  private readonly MAX_SCREENSHOTS = TEST_CONFIGURATION.MAX_SCREENSHOTS;
 
   constructor() {
     this.browserService = new BrowserService();
@@ -157,8 +158,13 @@ export class TestRunner {
         );
       }
 
-      // Close browser
-      await this.browserService.close();
+      // Close browser - wrapped in try-catch to ensure cleanup even if close fails
+      try {
+        await this.browserService.close();
+      } catch (closeError) {
+        console.error('[TestRunner] Error closing browser after test:', closeError);
+        // Don't throw - test already completed successfully
+      }
 
       return this.currentTest;
     } catch (error) {
@@ -173,7 +179,13 @@ export class TestRunner {
         });
       }
 
-      await this.browserService.close();
+      // Close browser - wrapped in try-catch to ensure cleanup even if close fails
+      try {
+        await this.browserService.close();
+      } catch (closeError) {
+        console.error('[TestRunner] Error closing browser after test failure:', closeError);
+        // Continue to throw original error
+      }
 
       throw error;
     }
@@ -182,7 +194,7 @@ export class TestRunner {
   /**
    * Wait helper for visual feedback delays
    */
-  private async waitForVisual(ms = 300): Promise<void> {
+  private async waitForVisual(ms = TEST_CONFIGURATION.SCREENSHOT_DELAY_MS): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 

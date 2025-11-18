@@ -2,7 +2,7 @@
  * Scheduler Component - Autonomous Test Execution UI
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './Scheduler.css';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -57,32 +57,58 @@ export default function Scheduler() {
     maxIterations: 0,
   });
 
+  const loadSchedulerData = useCallback(async () => {
+    try {
+      const statusResult = await window.electron.scheduler.getStatus();
+      if (statusResult.success) {
+        setSchedulerStatus(statusResult.status);
+      } else {
+        console.error('Failed to get scheduler status:', statusResult.error);
+      }
+
+      const testsResult = await window.electron.scheduler.getTests();
+      if (testsResult.success) {
+        setScheduledTests(testsResult.tests);
+      } else {
+        console.error('Failed to get scheduled tests:', testsResult.error);
+      }
+    } catch (error) {
+      console.error('Error loading scheduler data:', error);
+    }
+  }, []);
+
   useEffect(() => {
     loadSchedulerData();
     const interval = setInterval(loadSchedulerData, 2000);
     return () => clearInterval(interval);
-  }, []);
-
-  const loadSchedulerData = async () => {
-    const statusResult = await window.electron.scheduler.getStatus();
-    if (statusResult.success) {
-      setSchedulerStatus(statusResult.status);
-    }
-
-    const testsResult = await window.electron.scheduler.getTests();
-    if (testsResult.success) {
-      setScheduledTests(testsResult.tests);
-    }
-  };
+  }, [loadSchedulerData]);
 
   const handleStartBot = async () => {
-    await window.electron.scheduler.start();
-    loadSchedulerData();
+    try {
+      const result = await window.electron.scheduler.start();
+      if (!result.success) {
+        console.error('Failed to start scheduler:', result.error);
+        alert(`Failed to start scheduler: ${result.error}`);
+      }
+      await loadSchedulerData();
+    } catch (error) {
+      console.error('Error starting scheduler:', error);
+      alert('Failed to start scheduler. Check console for details.');
+    }
   };
 
   const handleStopBot = async () => {
-    await window.electron.scheduler.stop();
-    loadSchedulerData();
+    try {
+      const result = await window.electron.scheduler.stop();
+      if (!result.success) {
+        console.error('Failed to stop scheduler:', result.error);
+        alert(`Failed to stop scheduler: ${result.error}`);
+      }
+      await loadSchedulerData();
+    } catch (error) {
+      console.error('Error stopping scheduler:', error);
+      alert('Failed to stop scheduler. Check console for details.');
+    }
   };
 
   const handleAddTest = async () => {
@@ -91,56 +117,94 @@ export default function Scheduler() {
       return;
     }
 
-    const scheduledTest: ScheduledTest = {
-      id: uuidv4(),
-      name: newTest.name,
-      config: {
-        url: newTest.url,
-        testObjective: newTest.testObjective,
-        anthropicApiKey: newTest.anthropicApiKey,
-        headless: true,
-      },
-      schedule: {
-        type: newTest.scheduleType,
-        interval:
-          newTest.scheduleType === 'interval'
-            ? newTest.intervalMinutes * 60 * 1000
-            : undefined,
-        maxIterations: newTest.maxIterations > 0 ? newTest.maxIterations : undefined,
-      },
-      status: 'active',
-      executionCount: 0,
-      results: [],
-    };
+    try {
+      const scheduledTest: ScheduledTest = {
+        id: uuidv4(),
+        name: newTest.name,
+        config: {
+          url: newTest.url,
+          testObjective: newTest.testObjective,
+          anthropicApiKey: newTest.anthropicApiKey,
+          headless: true,
+        },
+        schedule: {
+          type: newTest.scheduleType,
+          interval:
+            newTest.scheduleType === 'interval'
+              ? newTest.intervalMinutes * 60 * 1000
+              : undefined,
+          maxIterations: newTest.maxIterations > 0 ? newTest.maxIterations : undefined,
+        },
+        status: 'active',
+        executionCount: 0,
+        results: [],
+      };
 
-    await window.electron.scheduler.addTest(scheduledTest);
-    setShowAddDialog(false);
-    setNewTest({
-      name: '',
-      url: '',
-      testObjective: '',
-      anthropicApiKey: '',
-      scheduleType: 'interval',
-      intervalMinutes: 5,
-      maxIterations: 0,
-    });
-    loadSchedulerData();
+      const result = await window.electron.scheduler.addTest(scheduledTest);
+      if (!result.success) {
+        console.error('Failed to add test:', result.error);
+        alert(`Failed to add test: ${result.error}`);
+        return;
+      }
+
+      setShowAddDialog(false);
+      setNewTest({
+        name: '',
+        url: '',
+        testObjective: '',
+        anthropicApiKey: '',
+        scheduleType: 'interval',
+        intervalMinutes: 5,
+        maxIterations: 0,
+      });
+      await loadSchedulerData();
+    } catch (error) {
+      console.error('Error adding test:', error);
+      alert('Failed to add test. Check console for details.');
+    }
   };
 
   const handlePauseTest = async (testId: string) => {
-    await window.electron.scheduler.pauseTest(testId);
-    loadSchedulerData();
+    try {
+      const result = await window.electron.scheduler.pauseTest(testId);
+      if (!result.success) {
+        console.error('Failed to pause test:', result.error);
+        alert(`Failed to pause test: ${result.error}`);
+      }
+      await loadSchedulerData();
+    } catch (error) {
+      console.error('Error pausing test:', error);
+      alert('Failed to pause test. Check console for details.');
+    }
   };
 
   const handleResumeTest = async (testId: string) => {
-    await window.electron.scheduler.resumeTest(testId);
-    loadSchedulerData();
+    try {
+      const result = await window.electron.scheduler.resumeTest(testId);
+      if (!result.success) {
+        console.error('Failed to resume test:', result.error);
+        alert(`Failed to resume test: ${result.error}`);
+      }
+      await loadSchedulerData();
+    } catch (error) {
+      console.error('Error resuming test:', error);
+      alert('Failed to resume test. Check console for details.');
+    }
   };
 
   const handleRemoveTest = async (testId: string) => {
     if (confirm('Are you sure you want to remove this scheduled test?')) {
-      await window.electron.scheduler.removeTest(testId);
-      loadSchedulerData();
+      try {
+        const result = await window.electron.scheduler.removeTest(testId);
+        if (!result.success) {
+          console.error('Failed to remove test:', result.error);
+          alert(`Failed to remove test: ${result.error}`);
+        }
+        await loadSchedulerData();
+      } catch (error) {
+        console.error('Error removing test:', error);
+        alert('Failed to remove test. Check console for details.');
+      }
     }
   };
 
